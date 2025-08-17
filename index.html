@@ -1,10 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Hi ❤️</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doi Hitesh 🌸</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Comfortaa:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="text-align:center; font-family:sans-serif; background:#fffbe7;">
-  <h1>💖 Your surprise will be unlocked soon 💖</h1>
-  <p>Stay tuned... something special is coming ✨</p>
+<body>
+    <div class="container">
+        <header class="cute-header">
+            <h1 class="love-title">🌸 Doi Hitesh 🌸</h1>
+            <div class="heart-animation">
+                <span class="heart">🌸</span>
+                <span class="heart">🍑</span>
+                <span class="heart">💕</span>
+            </div>
+        </header>
+
+        <div class="swiper-container">
+            <div class="card-wrapper">
+                <!-- Card 1: Paragraph 1 -->
+                <div class="card active" style="opacity: 1; transform: translateX(0) rotateY(0deg) scale(1); z-index: 10;">
+                    <div class="card-content">
+                        <p class="card-text">Happy 3rd month, love.</p>
+                        <div class="cute-decoration">🌸💕🌸</div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Paragraph 2 -->
+                <div class="card">
+                    <div class="card-content">
+                        <p class="card-text">I'm really, really sorry for what I said. I didn't mean to, but that's not the point, it did hurt you, and I shouldn't have said it. I should be more cautious with my words because you love me so much, and you take everything I say to heart. That means so much to me, and I should respect that.</p>
+                        <div class="cute-decoration">🍑💧🍑</div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Paragraph 3 -->
+                <div class="card">
+                    <div class="card-content">
+                        <p class="card-text">I'm truly sorry I did something like this. I won't just say it, I'll take responsibility and be better. I need to be a better person for you, for me, and for us. I do value you, I value what you do, and everything you do means the world to me.</p>
+                        <div class="cute-decoration">🌸✨🌸</div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Paragraph 4 -->
+                <div class="card">
+                    <div class="card-content">
+                        <p class="card-text">Thank you for being who you are, for being so nice and kind to me, for teaching me what love is, for making me feel loved, for supporting me, for being such a good friend, a great companion, and the best girlfriend, the best that I could have ever asked for.</p>
+                        <div class="cute-decoration">🍑🌺🍑</div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Paragraph 5 -->
+                <div class="card">
+                    <div class="card-content">
+                        <p class="card-text">I'll do my best to be more responsible with my words, to make you feel secure, to make sure you never feel taken for granted. I'm sorry if I ever made you feel that way. These past three months have been the most beautiful time of my life.</p>
+                        <div class="cute-decoration">🌸💖🌸</div>
+                    </div>
+                </div>
+
+                <!-- Card 6: Image 1 -->
+                <div class="card">
+                    <div class="card-content">
+                        <div class="image-container">
+                            <img src="1.PNG" alt="Our beautiful memory" class="card-image">
+                        </div>
+                        <div class="cute-decoration">🍑📸🍑</div>
+                    </div>
+                </div>
+
+                <!-- Card 7: Image 2 -->
+                <div class="card">
+                    <div class="card-content">
+                        <div class="image-container">
+                            <img src="2.JPG" alt="Sweet moments together" class="card-image">
+                        </div>
+                        <div class="cute-decoration">🌸📷🌸</div>
+                    </div>
+                </div>
+
+                <!-- Card 8: Video -->
+                <div class="card">
+                    <div class="card-content">
+                        <div class="video-container">
+                            <video controls preload="metadata" class="card-video">
+                                <source src="video.MP4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="cute-decoration">🍑🎥🍑</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="navigation">
+                <button class="nav-btn prev-btn" onclick="previousCard()">
+                    <span class="nav-icon">🍑</span>
+                </button>
+                <div class="dots-container">
+                    <span class="dot active" onclick="currentCard(1)"></span>
+                    <span class="dot" onclick="currentCard(2)"></span>
+                    <span class="dot" onclick="currentCard(3)"></span>
+                    <span class="dot" onclick="currentCard(4)"></span>
+                    <span class="dot" onclick="currentCard(5)"></span>
+                    <span class="dot" onclick="currentCard(6)"></span>
+                    <span class="dot" onclick="currentCard(7)"></span>
+                    <span class="dot" onclick="currentCard(8)"></span>
+                </div>
+                <button class="nav-btn next-btn" onclick="nextCard()">
+                    <span class="nav-icon">🌸</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
