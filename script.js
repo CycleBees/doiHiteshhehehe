@@ -2,7 +2,7 @@
 class CuteCardSwiper {
     constructor() {
         this.currentCard = 1;
-        this.totalCards = 8;
+        this.totalCards = 12;
         this.isTransitioning = false;
         this.touchStartX = 0;
         this.touchEndX = 0;
@@ -126,6 +126,8 @@ class CuteCardSwiper {
     nextCard() {
         if (this.isTransitioning) return;
         
+        this.hideSwipeHint();
+        
         if (this.currentCard < this.totalCards) {
             this.goToCard(this.currentCard + 1);
         } else {
@@ -136,6 +138,8 @@ class CuteCardSwiper {
     
     previousCard() {
         if (this.isTransitioning) return;
+        
+        this.hideSwipeHint();
         
         if (this.currentCard > 1) {
             this.goToCard(this.currentCard - 1);
@@ -148,6 +152,7 @@ class CuteCardSwiper {
     goToCard(cardNumber) {
         if (this.isTransitioning || cardNumber === this.currentCard) return;
         
+        this.hideSwipeHint();
         this.isTransitioning = true;
         this.currentCard = cardNumber;
         
@@ -159,6 +164,17 @@ class CuteCardSwiper {
         setTimeout(() => {
             this.isTransitioning = false;
         }, 600);
+    }
+    
+    hideSwipeHint() {
+        const swipeHint = document.querySelector('.swipe-hint');
+        if (swipeHint) {
+            swipeHint.style.opacity = '0';
+            swipeHint.style.pointerEvents = 'none';
+            setTimeout(() => {
+                swipeHint.style.display = 'none';
+            }, 500);
+        }
     }
     
     updateCardPositions() {
@@ -415,3 +431,426 @@ setTimeout(startAutoProgress, 3000);
     document.addEventListener(event, stopAutoProgress, { once: true });
 });
 */
+
+// Game Functions
+function openGame() {
+    document.getElementById('gameModal').classList.add('show');
+    initGame();
+}
+
+function closeGame() {
+    document.getElementById('gameModal').classList.remove('show');
+    if (window.gameInstance) {
+        window.gameInstance.stop();
+    }
+}
+
+// Super Easy Glitch-Free Flappy Bird Game
+class LoveBirdGame {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        if (!this.canvas) return;
+        
+        this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) return;
+        
+        // Game state
+        this.isDestroyed = false;
+        this.experience = 0; // No localStorage saving
+        this.baseBirdSize = 25;
+        this.birdSizeIncrease = 4; // Size increases by 4px per experience
+        this.maxExperience = 6; // Cap at 6 experiences
+        this.currentBirdSize = this.baseBirdSize;
+        
+        // Bird properties
+        this.bird = { x: 80, y: 250, velocity: 0, size: this.currentBirdSize };
+        this.pipes = [];
+        this.score = 0;
+        this.gameRunning = false;
+        this.gameStarted = false;
+        this.gameOver = false;
+        
+        // Super easy settings
+        this.gravity = 0.3;
+        this.jumpPower = -7;
+        this.pipeWidth = 60;
+        this.pipeGap = 220;
+        this.pipeSpeed = 1;
+        this.pipeFrequency = 350;
+        this.animationId = null;
+        
+        // Timing controls
+        this.lastPipeTime = 0;
+        this.pipeInterval = 2000; // 2 seconds between pipes
+        this.lastTime = 0;
+        
+        // Event handlers
+        this.boundHandlers = {
+            jump: this.jump.bind(this),
+            handleTouch: this.handleTouch.bind(this),
+            handleClick: this.handleClick.bind(this),
+            handleKey: this.handleKey.bind(this)
+        };
+        
+        // Load bird image
+        this.birdImg = new Image();
+        this.birdImg.src = 'flappybirdicon.png';
+        this.birdImgLoaded = false;
+        this.birdImg.onload = () => {
+            if (!this.isDestroyed) {
+                this.birdImgLoaded = true;
+            }
+        };
+        this.birdImg.onerror = () => {
+            this.birdImgLoaded = false;
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        if (this.isDestroyed) return;
+        this.bindEvents();
+        this.updateExperience();
+        this.updateBirdSize();
+        this.gameLoop();
+    }
+
+    bindEvents() {
+        if (this.isDestroyed || !this.canvas) return;
+        
+        // Remove any existing listeners first
+        this.removeEvents();
+        
+        // Mobile touch controls
+        this.canvas.addEventListener('touchstart', this.boundHandlers.handleTouch, { passive: false });
+        this.canvas.addEventListener('touchend', this.boundHandlers.handleTouch, { passive: false });
+        this.canvas.addEventListener('touchmove', this.boundHandlers.handleTouch, { passive: false });
+        
+        // Desktop click
+        this.canvas.addEventListener('click', this.boundHandlers.handleClick);
+        
+        // Keyboard
+        document.addEventListener('keydown', this.boundHandlers.handleKey);
+    }
+    
+    removeEvents() {
+        if (!this.canvas) return;
+        
+        this.canvas.removeEventListener('touchstart', this.boundHandlers.handleTouch);
+        this.canvas.removeEventListener('touchend', this.boundHandlers.handleTouch);
+        this.canvas.removeEventListener('touchmove', this.boundHandlers.handleTouch);
+        this.canvas.removeEventListener('click', this.boundHandlers.handleClick);
+        document.removeEventListener('keydown', this.boundHandlers.handleKey);
+    }
+    
+    handleTouch(e) {
+        if (this.isDestroyed) return;
+        e.preventDefault();
+        if (e.type === 'touchstart') {
+            this.jump();
+        }
+    }
+    
+    handleClick(e) {
+        if (this.isDestroyed) return;
+        e.preventDefault();
+        this.jump();
+    }
+    
+    handleKey(e) {
+        if (this.isDestroyed) return;
+        if (e.code === 'Space' && document.getElementById('gameModal')?.classList.contains('show')) {
+            e.preventDefault();
+            this.jump();
+        }
+    }
+
+    jump() {
+        if (this.isDestroyed || this.gameOver) return;
+        
+        if (!this.gameStarted) {
+            this.start();
+        } else if (this.gameRunning) {
+            this.bird.velocity = this.jumpPower;
+        }
+    }
+
+    start() {
+        if (this.isDestroyed) return;
+        
+        this.gameStarted = true;
+        this.gameRunning = true;
+        this.gameOver = false;
+        this.bird = { x: 80, y: this.canvas.height / 2, velocity: 0, size: this.currentBirdSize };
+        this.pipes = [];
+        this.score = 0;
+        this.lastPipeTime = 0;
+        this.lastTime = performance.now();
+        this.showMessage('');
+    }
+
+    restart() {
+        if (this.isDestroyed) return;
+        
+        setTimeout(() => {
+            if (!this.isDestroyed) {
+                this.gameStarted = false;
+                this.gameRunning = false;
+                this.gameOver = false;
+                this.bird = { x: 80, y: this.canvas.height / 2, velocity: 0, size: this.currentBirdSize };
+                this.pipes = [];
+                this.score = 0;
+                this.lastPipeTime = 0;
+                this.showMessage('');
+            }
+        }, 100);
+    }
+
+    updateBirdSize() {
+        if (this.experience < this.maxExperience) {
+            this.currentBirdSize = this.baseBirdSize + (this.experience * this.birdSizeIncrease);
+        } else {
+            this.currentBirdSize = this.baseBirdSize + (this.maxExperience * this.birdSizeIncrease);
+        }
+        
+        if (this.bird) {
+            this.bird.size = this.currentBirdSize;
+        }
+    }
+
+    stop() {
+        this.isDestroyed = true;
+        this.gameRunning = false;
+        this.gameStarted = false;
+        this.gameOver = true;
+        
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        
+        this.removeEvents();
+    }
+
+    addPipe(currentTime) {
+        if (this.isDestroyed || !this.gameRunning) return;
+        
+        const minGapY = 80;
+        const maxGapY = this.canvas.height - this.pipeGap - 80;
+        const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
+        
+        this.pipes.push({
+            x: this.canvas.width,
+            topHeight: gapY,
+            bottomY: gapY + this.pipeGap,
+            passed: false,
+            id: currentTime // Unique identifier
+        });
+        
+        this.lastPipeTime = currentTime;
+    }
+
+    update(currentTime) {
+        if (this.isDestroyed || !this.gameRunning || this.gameOver) return;
+
+        const deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+
+        // Update bird physics with frame-rate independent movement
+        this.bird.velocity += this.gravity;
+        this.bird.y += this.bird.velocity;
+
+        // Add pipes with time-based spawning
+        if (this.pipes.length === 0 || (currentTime - this.lastPipeTime) > this.pipeInterval) {
+            this.addPipe(currentTime);
+        }
+
+        // Update pipes
+        for (let i = this.pipes.length - 1; i >= 0; i--) {
+            const pipe = this.pipes[i];
+            if (!pipe) continue;
+            
+            pipe.x -= this.pipeSpeed;
+
+            // Check for score (only once per pipe)
+            if (!pipe.passed && pipe.x + this.pipeWidth < this.bird.x) {
+                pipe.passed = true;
+                this.score++;
+            }
+
+            // Remove off-screen pipes
+            if (pipe.x + this.pipeWidth < -50) {
+                this.pipes.splice(i, 1);
+            }
+        }
+
+        // Check collisions
+        this.checkCollisions();
+    }
+
+    checkCollisions() {
+        if (this.isDestroyed || !this.gameRunning || this.gameOver) return;
+        
+        const birdLeft = this.bird.x;
+        const birdRight = this.bird.x + this.bird.size;
+        const birdTop = this.bird.y;
+        const birdBottom = this.bird.y + this.bird.size;
+
+        // Ground and ceiling collision with some margin
+        if (birdTop <= 5 || birdBottom >= this.canvas.height - 5) {
+            this.crash();
+            return;
+        }
+
+        // Pipe collision with more forgiving hitbox
+        for (const pipe of this.pipes) {
+            if (!pipe) continue;
+            
+            const margin = 2; // Small margin for easier gameplay
+            
+            // Check if bird is horizontally aligned with pipe
+            if (birdRight > pipe.x + margin && birdLeft < pipe.x + this.pipeWidth - margin) {
+                // Check if bird hits top or bottom pipe
+                if (birdTop < pipe.topHeight - margin || birdBottom > pipe.bottomY + margin) {
+                    this.crash();
+                    return;
+                }
+            }
+        }
+    }
+
+    crash() {
+        if (this.isDestroyed || this.gameOver) return;
+        
+        this.gameRunning = false;
+        this.gameOver = true;
+        
+        // Only increase experience up to max limit
+        if (this.experience < this.maxExperience) {
+            this.experience++;
+            this.updateBirdSize();
+        }
+        
+        this.updateExperience();
+        this.showMessage('');
+        
+        // Auto restart after 1 second
+        setTimeout(() => {
+            if (!this.isDestroyed) {
+                this.restart();
+            }
+        }, 1000);
+    }
+
+    updateExperience() {
+        document.getElementById('expCount').textContent = this.experience;
+    }
+
+    showMessage(message) {
+        const messageEl = document.getElementById('gameMessage');
+        messageEl.textContent = message;
+        if (message) {
+            messageEl.style.animation = 'none';
+            setTimeout(() => {
+                messageEl.style.animation = 'messageGlow 0.5s ease-in-out';
+            }, 10);
+        }
+    }
+
+    render() {
+        if (this.isDestroyed || !this.ctx) return;
+        
+        try {
+            // Clear canvas with sky gradient
+            const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+            gradient.addColorStop(0, '#e6f3ff');
+            gradient.addColorStop(1, '#f0f8ff');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // Draw pipes first (behind bird)
+            this.ctx.fillStyle = '#c19a6b';
+            this.ctx.strokeStyle = '#8b7355';
+            this.ctx.lineWidth = 2;
+            
+            for (const pipe of this.pipes) {
+                if (!pipe) continue;
+                
+                // Top pipe
+                this.ctx.fillRect(pipe.x, 0, this.pipeWidth, pipe.topHeight);
+                this.ctx.strokeRect(pipe.x, 0, this.pipeWidth, pipe.topHeight);
+                
+                // Bottom pipe
+                this.ctx.fillRect(pipe.x, pipe.bottomY, this.pipeWidth, this.canvas.height - pipe.bottomY);
+                this.ctx.strokeRect(pipe.x, pipe.bottomY, this.pipeWidth, this.canvas.height - pipe.bottomY);
+            }
+
+            // Draw bird
+            if (this.birdImgLoaded && this.birdImg.complete) {
+                this.ctx.save();
+                this.ctx.translate(this.bird.x + this.bird.size/2, this.bird.y + this.bird.size/2);
+                
+                // Subtle rotation based on velocity
+                const rotation = Math.min(Math.max(this.bird.velocity * 0.05, -0.3), 0.3);
+                this.ctx.rotate(rotation);
+                
+                // Draw bird image with circular clipping
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, this.bird.size/2, 0, Math.PI * 2);
+                this.ctx.clip();
+                
+                // Draw the actual bird image
+                this.ctx.drawImage(
+                    this.birdImg, 
+                    -this.bird.size/2, 
+                    -this.bird.size/2, 
+                    this.bird.size, 
+                    this.bird.size
+                );
+                
+                this.ctx.restore();
+            } else {
+                // Fallback circle
+                this.ctx.fillStyle = '#ff69b4';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    this.bird.x + this.bird.size/2, 
+                    this.bird.y + this.bird.size/2, 
+                    this.bird.size/2, 
+                    0, 
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+            }
+
+            // Draw only score
+            this.ctx.fillStyle = '#8b7355';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(`Score: ${this.score}`, 15, 30);
+        } catch (error) {
+            console.warn('Render error:', error);
+        }
+    }
+
+    gameLoop() {
+        if (this.isDestroyed) return;
+        
+        const currentTime = performance.now();
+        
+        this.update(currentTime);
+        this.render();
+        
+        if (!this.isDestroyed) {
+            this.animationId = requestAnimationFrame(() => this.gameLoop());
+        }
+    }
+}
+
+function initGame() {
+    if (window.gameInstance) {
+        window.gameInstance.stop();
+    }
+    window.gameInstance = new LoveBirdGame();
+}
