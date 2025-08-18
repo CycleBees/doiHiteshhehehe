@@ -471,17 +471,17 @@ class LoveBirdGame {
         this.gameOver = false;
         
         // Super easy settings
-        this.gravity = 0.3;
-        this.jumpPower = -7;
+        this.gravity = 0.4;
+        this.jumpPower = -8;
         this.pipeWidth = 60;
-        this.pipeGap = 220;
-        this.pipeSpeed = 1;
+        this.pipeGap = 250;
+        this.pipeSpeed = 2.5;
         this.pipeFrequency = 350;
         this.animationId = null;
         
         // Timing controls
         this.lastPipeTime = 0;
-        this.pipeInterval = 2000; // 2 seconds between pipes
+        this.pipeInterval = 1800; // 1.8 seconds between pipes
         this.lastTime = 0;
         
         // Event handlers
